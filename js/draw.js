@@ -21,29 +21,23 @@ const drawPathSegment = (
   coordinates.lastY = currentY;
 };
 
-const createCanvasState = (...args) => {
+const createCanvasState = (fn, svg, dimensions, ...args) => {
   const coordinates = { lastX: 0, lastY: 0 };
 
-  return function (fn) {
-    return function (...params) {
-      return fn(...params, coordinates, ...args);
-    };
-  };
+  fn(...args, coordinates, svg, dimensions);
 };
 
-const resetPath = (cor) => {
-  cor.lastX = 0;
-  cor.lastY = 0;
+const resetPath = () => {
+  coordinates.lastX = 0;
+  coordinates.lastY = 0;
 };
 
 const setupCanvas = () => {
   const svg = document.querySelector("svg");
   const dimensions = svg.getBoundingClientRect();
-  const button = document.querySelector("button");
 
-  const canvas = createCanvasState(svg, dimensions);
-  const startDrawing = canvas(drawPathSegment);
-  const reset = canvas(resetPath);
+  const startDrawing = createCanvasState.bind(drawPathSegment, svg, dimensions);
+  const reset = createCanvasState.bind(resetPath);
 
   svg.addEventListener("mousedown", () => {
     svg.addEventListener("mousemove", startDrawing);
@@ -54,6 +48,7 @@ const setupCanvas = () => {
     svg.removeEventListener("mousemove", startDrawing);
   });
 
+  const button = document.querySelector("button");
   button.addEventListener("click", () => {
     svg.replaceChildren("line");
   });
